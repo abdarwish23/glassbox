@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glassbox — sandboxed analytics agent (demo)</title>
+<!-- Demo convenience: Plotly from CDN. Production should vendor Plotly.js
+     with the frontend bundle instead (see README). -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 960px; padding: 0 1rem; }
+  h1 { font-size: 1.4rem; }
+  textarea { width: 100%; box-sizing: border-box; font-size: 1rem; padding: .6rem; }
+  button { font-size: 1rem; padding: .5rem 1.2rem; margin-top: .5rem; cursor: pointer; }
+  #summary { white-space: pre-wrap; background: #f4f4f5; padding: 1rem; border-radius: 8px; margin-top: 1rem; }
+  .fig { margin-top: 1.5rem; }
+  #status { color: #555; margin-top: .5rem; }
+  details { margin-top: 1rem; }
+  pre { overflow-x: auto; background: #111; color: #ddd; padding: 1rem; border-radius: 8px; }
+</style>
+</head>
+<body>
+<h1>🪟 Glassbox — demo</h1>
+<p>Ask a question. The agent fetches data with a read-only SQL tool, runs
+Python in the Pyodide sandbox, and returns validated Plotly figures.</p>
+<textarea id="q" rows="3">Which KPIs are correlated, and does any KPI lead another? Show the correlation heatmaps, the lag analysis, and a map of the sites.</textarea>
+<br>
+<button id="ask">Ask</button>
+<div id="status"></div>
+<div id="summary" hidden></div>
+<div id="figs"></div>
+<details id="statsBox" hidden>
+  <summary>Raw stats (summary JSON from the sandbox)</summary>
+  <pre id="stats"></pre>
+</details>
+<script>
+const btn = document.getElementById('ask');
+btn.addEventListener('click', async () => {
+  const question = document.getElementById('q').value.trim();
+  const status = document.getElementById('status');
+  const summary = document.getElementById('summary');
+  const figs = document.getElementById('figs');
+  const statsBox = document.getElementById('statsBox');
+  figs.innerHTML = ''; summary.hidden = true; statsBox.hidden = true;
+  status.textContent = 'Working… (SQL → sandbox analysis → validated figures)';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/ask', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const out = await r.json();
+    if (!r.ok) throw new Error(out.error || ('HTTP ' + r.status));
+    status.textContent = `Done in ${(out.elapsed_ms / 1000).toFixed(1)}s · planner: ${out.planner} · ${out.figures.length} figures`;
+    summary.textContent = out.answer_summary;
+    summary.hidden = false;
+    // Figure JSON is data, never code: parse and hand to Plotly.
+    out.figures.forEach((fig, i) => {
+      const div = document.createElement('div');
+      div.className = 'fig';
+      figs.appendChild(div);
+      Plotly.newPlot(div, fig.data, fig.layout || {}, { responsive: true });
+    });
+    document.getElementById('stats').textContent = JSON.stringify(out.stats, null, 2);
+    statsBox.hidden = false;
+  } catch (e) {
+    status.textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "glassbox",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Glassbox — an AI analytics agent that runs Python in a Pyodide/WASM sandbox and returns validated Plotly figures.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "seed": "node demo/seed.mjs",
+    "worker": "node worker/server.mjs",
+    "agent": "node agent/server.mjs",
+    "test:unit": "node tests/unit.test.mjs",
+    "test:security": "node tests/security.test.mjs",
+    "test:e2e": "node tests/e2e.test.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.11.0",
+    "openai": "7.61.0",
+    "pyodide": "314.0.8"
+  }
+}

@@ -21,6 +21,7 @@ Deployment platform constraints (stated by Bahaa, 2026-11-19):
 - **FaaS-style web application instance**: you select CPU and memory, provide a `.sh` file (`run.sh`) that deploys/starts the app in the instance.
 - **No Docker** — no containers, and therefore no container-grade isolation, no root, no custom kernel features.
 - Everything the sandbox needs must be installed and started by `run.sh` in user space.
+- **Platform mechanics (confirmed by Bahaa, 2026-11-20):** deployment = select instance (CPUs, memory) → point the platform at the repo → supply the `run.sh`. The platform **clones the repo and runs `run.sh`**; all library installation happens inside `run.sh`. When it finishes, the platform provides a **local intranet shareable URL** used as the API endpoint the frontend consumes. His existing pattern on this platform is a LangChain **DeepAgent** backend deployed exactly this way. Consequence: everything Glassbox needs — agent service, SQL tool, sandbox workers — lives in the one repo and starts from the one `run.sh` inside the one instance (§9).
 
 **Design consequence:** the sandbox must be *pure code* — isolation has to come from the runtime the code executes in, not from the operating system.
 
@@ -112,6 +113,10 @@ A general shell inside this platform cannot be made safe in pure code (it would 
 1. **Simulated shell** over the dataset/workspace: `ls`, `head`, `cat`, `grep`, `wc`, `sort`, `cut` implemented in service code against in-memory data — covers most of what an analytics agent actually uses a shell for.
 2. **Allowlisted subprocess commands** (e.g. `python`, `date`) with scrubbed env, jailed cwd, rlimits and timeouts — only if a concrete need survives option 1.
 
+### 5.5 Memory (agent layer — noted by Bahaa, 2026-11-20)
+
+Long-term memory attaches at the **agent service layer**, never inside sandbox workers — workers are stateless and disposable by design, and that stays true. Concretely: the agent connects to **dhakira** (Bahaa's existing memory core, an MCP server built harness-agnostic for exactly this) and gains remember/recall across sessions: a user's preferred KPIs and regions, past analyses and their conclusions, schema knowledge (what a table/column means), and corrections. The sandbox still receives only rows + code per run and holds nothing between runs; memory reads/writes happen in the agent service, which is the component allowed credentials and network. No change to the security model — if anything it reinforces it: memory is one more thing the worker never touches. Wiring dhakira in is an integration step after the MVP core loop works, not an MVP blocker.
+
 ## 6. Execution contract
 
 Sandbox input:
@@ -159,15 +164,34 @@ The agent's system prompt and tool examples ship these patterns as the supported
 - **Analysis patterns:** spatial clustering of poor/good performers (DBSCAN on coordinates via scikit-learn), per-grid-cell aggregation then correlation on the aggregates, distance-based questions (KPI vs distance bands). 
 - **Phase 0 must verify:** plotly map-figure JSON generation inside Pyodide, and availability of geopandas/shapely/h3 in the pinned Pyodide set. If they are unavailable, the pure-Python fallbacks above (haversine + geohash + numpy gridding) cover the MVP geo scope without them — geo does **not** force the Option B fallback by itself.
 
+## 8.6 Multi-user concurrency
+
+Glassbox is multi-user by construction, not by later adaptation:
+
+- **Isolation unit = one run, one worker.** Each analysis executes in its own sandbox worker with fresh state (proven in Phase 0: no variables, modules or files leak between runs). Two users' analyses cannot see each other's data or variables — datasets are passed by handle, namespaced per session/user, and expire.
+- **Concurrency = pool size.** Workers are warm-pooled; a run takes the next free worker, and workers recycle in the background (clean worker ≈ 6 s, hidden by the pool). At ~0.85 GB per loaded worker (spike-measured), an instance with 4 GB of sandbox memory sustains ~3 concurrent analyses; 8 GB ≈ 6–7. Size the instance for the team's *simultaneous* analyses, not its headcount — analyses take seconds, so a pool of 3 serves a much larger team in practice.
+- **Bursts queue, they don't crash.** When the pool is exhausted, runs wait in a queue with a visible position/timeout rather than failing or sharing a worker. Per-run caps (wall time, output size) stop one user's heavy job from starving everyone else.
+- **Per-user database identity.** The SQL tool connects with the requesting user's own read-only DB credentials where the platform supports it, so database permissions — not agent code — decide who sees what. Dataset handles are bound to the user who created them.
+- **Scaling path.** Stateless agent service + worker pool per instance; more instances behind the platform's routing if concurrency outgrows one box. The binding constraints at scale are instance memory (workers) and the LLM provider's rate limits — both are capacity knobs, not redesigns.
+
 ## 9. Deployment: `run.sh`
+
+**Where the workers live — the question Bahaa asked directly (2026-11-20): inside the same instance.** The worker pool is not a separate service or fleet: the sandbox workers are **child processes of the app that `run.sh` starts**, on the same instance, sharing its selected CPU/memory budget. One repo, one `run.sh`, one instance, one intranet URL.
+
+Process layout inside the instance:
+- **Agent service** — the API the frontend calls (if Bahaa's DeepAgent pattern is reused: a Python/LangChain service). Holds the DB credentials and the LLM key.
+- **Sandbox worker sidecar** — a small Node process hosting the Pyodide worker pool, listening on **localhost only** (never on the intranet URL). The agent service calls it over local HTTP. Keeping the sandbox in its *own process* is also what the corrected §3 model wants: the process boundary is the security boundary, the sidecar's environment is scrubbed and secret-free, and a crashed/escaped worker cannot take the agent service down with it.
+- **Worker pool** — N Pyodide workers inside the sidecar, warmed at startup (§5.3 sizing: ~0.85 GB and ~1 CPU's worth of load work each).
+
+`run.sh` responsibilities, in order:
 
 `run.sh` (idempotent, fail-fast, logs each step) does:
 
-1. Detect/Install a pinned Node runtime into a local directory if not present (no root assumed).
-2. `npm ci` for the agent service + sandbox worker dependencies (Pyodide and the pinned Python package set are fetched at this stage — **requires internet access at deploy time; open question Q1** — if the platform has none, the fallback is committing a pre-built bundle/vendor directory to the repo).
-3. Build/step: none beyond dependency install for MVP.
-4. Start the sandbox worker pool and the agent service (service binds the platform-provided port, e.g. `$PORT`), with a supervisor loop that restarts a dead worker.
-5. Health endpoint (`/healthz`) reporting worker readiness, so the platform's checks pass only once Pyodide is warm.
+1. Detect/install pinned runtimes into a local directory if not present (no root assumed): Node for the sandbox sidecar, plus Python if the agent service is a DeepAgent/LangChain backend.
+2. Install dependencies: agent-service packages, sidecar packages, and the Pyodide Python package set. **All Python wheels — including plotly, which Pyodide only gets via micropip — are vendored in the repo** (a committed `vendor/` directory), per the Phase 0 finding: this removes the ~44 s first-run downloads, the ~6 s/interpreter plotly fetch, and any dependence on internet access at deploy or run time (open question Q1 becomes non-blocking).
+3. Start the **sandbox sidecar first** and begin warming the worker pool in parallel.
+4. Start the **agent service**, which binds the platform-provided port (e.g. `$PORT`) — this is the process behind the intranet URL. A supervisor loop restarts a dead sidecar/worker.
+5. Health endpoint (`/healthz`) on the agent service reporting worker readiness, so the platform's checks pass only once Pyodide is warm; the port binds fast, readiness flips when the pool is warm.
 
 **Sizing guidance:** Pyodide + pandas/scipy/statsmodels resident set is the memory floor (measure in Phase 0; plan ~1–1.5 GB per warm worker) plus headroom for the largest dataset (≤500k rows of hourly KPIs is tens of MB — comfortable). CPU count matters less: WASM analysis is effectively single-threaded, so prefer memory over extra CPUs when selecting the instance; extra CPUs help only via more parallel workers.
 
@@ -204,9 +228,9 @@ Acceptance: the Phase 0 tests green in the deployed shape; a real question again
 
 ## 13. Open questions for Bahaa
 
-- **Q1 — Platform specifics:** which FaaS platform is it? Internet access during `run.sh`? Max request/instance duration? Port via env var? Any persistent storage?
+- **Q1 — Platform specifics:** *mostly answered 2026-11-20* — repo + `run.sh` only; platform clones the repo, runs `run.sh`, exposes an intranet URL; instance = selected CPUs/memory; his existing pattern is a DeepAgent backend. Still unknown: internet access during/after `run.sh` (non-blocking — wheels are vendored), max request/instance duration, how the port is assigned, any persistent storage.
 - **Q2 — Audience:** only you/your team, or wider? (Sets how hard §3 must be.)
-- **Q3 — Agent service stack:** Python/FastAPI or TypeScript? And which LLM/API will the agent use?
+- **Q3 — Agent service stack:** Python/FastAPI or TypeScript? And which LLM/API will the agent use? *(Context added 2026-11-20: Bahaa's existing agent pattern on this platform is a LangChain DeepAgent backend — if Glassbox follows it, the agent service is Python and the Pyodide sandbox runs as the Node sidecar of §9, which the design already accommodates.)*
 - **Q4 — Database:** which engine (PostgreSQL, MySQL, BigQuery, …) and is a read-only user available?
 - **Q5 — Shell:** is the simulated shell (§5.4 option 1) acceptable for Phase 2, or is there a concrete command need behind "run shell like you"?
 

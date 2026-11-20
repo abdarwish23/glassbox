@@ -1,0 +1,2 @@
+/lib/python3.14/site-packages/threadpoolctl.py:1129: UserWarning: Unable to import LDSO from pyodide_js._module. This should never happen.
+  warnings.warn(

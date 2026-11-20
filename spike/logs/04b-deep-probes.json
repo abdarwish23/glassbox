@@ -1,0 +1,29 @@
+{
+  "test": "04b-deep-probes",
+  "attempts": {
+    "proc_environ_read": {
+      "outcome": "blocked",
+      "detail": "FileNotFoundError: [Errno 44] No such file or directory: '/proc/self/environ'"
+    },
+    "os_system_touch": {
+      "outcome": "ran",
+      "detail": "os.system('touch /tmp/glassbox_ossystem_host_marker') rc=0"
+    },
+    "os_system_id": {
+      "outcome": "ran",
+      "detail": "os.system('id > /tmp/glassbox_id_out.txt') rc=0"
+    },
+    "socket_loopback_exchange": {
+      "outcome": "blocked",
+      "detail": "TimeoutError: timed out"
+    },
+    "js_fetch_loopback_http": {
+      "outcome": "SUCCEEDED",
+      "detail": "js.fetch from Python returned: {\"canary\":\"HTTP_CANARY_7d2e\"}"
+    }
+  },
+  "host_checks": {
+    "os_system_created_host_marker": true,
+    "os_system_id_output_on_host": "uid=0(root) gid=0(root) groups=0(root)"
+  }
+}

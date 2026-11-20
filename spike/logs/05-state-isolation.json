@@ -1,0 +1,23 @@
+{
+  "test": "05-state-isolation",
+  "instanceA_runtime_load_s": 3.032,
+  "instanceA_state": {
+    "marker_visible_in_A": true,
+    "calendar_in_sys_modules": true,
+    "memfs_file_in_A": "run1 was here"
+  },
+  "instanceB_runtime_load_s": 2.467,
+  "instanceB_bare_state": {
+    "marker_visible_in_B": false,
+    "df_run1_visible_in_B": false,
+    "calendar_in_sys_modules_B": false,
+    "memfs_file_in_B": "FileNotFoundError"
+  },
+  "instanceB_core_packages_load_s": 3.549,
+  "instanceB_total_clean_worker_s": 6.016,
+  "memory": {
+    "rss_mb": 697,
+    "heap_used_mb": 72,
+    "external_mb": 304
+  }
+}

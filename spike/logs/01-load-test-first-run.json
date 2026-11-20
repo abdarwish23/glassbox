@@ -1,0 +1,46 @@
+{
+  "test": "01-load-test",
+  "stages": {
+    "runtime_load_s": 3.092,
+    "load_numpy_s": 12.165,
+    "load_pandas_s": 8.346,
+    "load_scipy_s": 8.265,
+    "load_statsmodels_s": 6.294,
+    "load_scikit-learn_s": 5.289,
+    "load_micropip_s": 0.414,
+    "micropip_install_plotly_s": 7.97
+  },
+  "packages": {
+    "numpy": "2.4.6",
+    "pandas": "3.0.2",
+    "scipy": "1.18.0",
+    "statsmodels": "0.14.6",
+    "sklearn": "1.8.0",
+    "plotly": "7.1.0"
+  },
+  "errors": {},
+  "memory_at_start": {
+    "rss_mb": 63,
+    "heap_used_mb": 8,
+    "external_mb": 4
+  },
+  "memory_after_runtime": {
+    "rss_mb": 162,
+    "heap_used_mb": 27,
+    "external_mb": 49
+  },
+  "python_version": "3.14.2 (main, Nov 13 2026, 20:18:53) [Clang 23.0.0git (https:/github.com/llvm/llvm-project e5927fecf8a6ce89e1a4eac5b8",
+  "memory_after_core_packages": {
+    "rss_mb": 500,
+    "heap_used_mb": 66,
+    "external_mb": 240
+  },
+  "plotly_source": "micropip from PyPI (network required)",
+  "memory_after_plotly": {
+    "rss_mb": 840,
+    "heap_used_mb": 60,
+    "external_mb": 387
+  },
+  "total_wall_s": 63.528,
+  "pyodide_npm_version": "314.0.8"
+}

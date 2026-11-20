@@ -1,0 +1,2 @@
+/lib/python3.14/site-packages/threadpoolctl.py:1135: RuntimeWarning: JsProxy.as_object_map() is deprecated. Use as_py_json() instead.
+  for filepath in LDSO.loadedLibsByName.as_object_map():

@@ -1,0 +1,29 @@
+{
+  "test": "04e-crawl-probe",
+  "modules_exposing_ctypes_attr": [
+    "numpy._core._internal",
+    "pandas.errors",
+    "pandas.core.interchange.from_dataframe",
+    "scipy._lib._ccallback_c",
+    "scipy._lib._ccallback",
+    "numpy.ctypeslib._ctypeslib",
+    "numpy.ctypeslib",
+    "scipy.stats._continuous_distns",
+    "ctypes.util",
+    "ctypes._layout",
+    "threadpoolctl"
+  ],
+  "modules_exposing_js_attr": [],
+  "crawl_ctypes_system": {
+    "outcome": "SUCCEEDED",
+    "via_module": "numpy._core._internal",
+    "rc": 0
+  },
+  "crawl_js_canary": {
+    "outcome": "blocked",
+    "detail": "no js holders found"
+  },
+  "host_checks": {
+    "crawl_marker_created_on_host": true
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "test": "04d-fullplus-diagnostic",
+  "fullplus_no_warmup_exercise": {
+    "imports": {
+      "pandas": {
+        "ok": false,
+        "error": "  File \"<exec>\", line 9, in find_spec | ImportError: blocked import: ctypes"
+      },
+      "numpy": {
+        "ok": true
+      },
+      "scipy_stats": {
+        "ok": false,
+        "error": "    raise ImportError(msg) from e | ImportError: The `scipy` install you are using seems to be broken, (extension modules cannot be imported), please try reinstalling."
+      },
+      "statsmodels": {
+        "ok": false,
+        "error": "  File \"<exec>\", line 9, in find_spec | ImportError: blocked import: ctypes"
+      },
+      "sklearn_dbscan": {
+        "ok": false,
+        "error": "    raise ImportError(msg) from e | ImportError: The `scipy` install you are using seems to be broken, (extension modules cannot be imported), please try reinstalling."
+      },
+      "plotly": {
+        "ok": true
+      }
+    },
+    "pandas_corr": {
+      "ok": false,
+      "error": "  File \"<exec>\", line 1, in <module> | NameError: name 'pd' is not defined. Did you mean: 'px'?"
+    },
+    "scipy_pearsonr": {
+      "ok": false,
+      "error": "  File \"<exec>\", line 1, in <module> | NameError: name 'stats' is not defined"
+    },
+    "scipy_spearmanr": {
+      "ok": false,
+      "error": "  File \"<exec>\", line 1, in <module> | NameError: name 'stats' is not defined"
+    },
+    "statsmodels_ols": {
+      "ok": false,
+      "error": "  File \"<exec>\", line 1, in <module> | NameError: name 'sm' is not defined. Did you mean: 'm'?"
+    },
+    "sklearn_dbscan": {
+      "ok": false,
+      "error": "  File \"<exec>\", line 1, in <module> | NameError: name 'DBSCAN' is not defined"
+    },
+    "plotly_scattermap": {
+      "ok": false,
+      "error": "  File \"<exec>\", line 1, in <module> | NameError: name 'pd' is not defined. Did you mean: 'px'?"
+    },
+    "ctypes_escape": {
+      "ok": false,
+      "error": "  File \"<exec>\", line 9, in find_spec | ImportError: blocked import: ctypes"
+    }
+  },
+  "fullplus_with_warmup_exercise": {
+    "imports": {
+      "pandas": {
+        "ok": true
+      },
+      "numpy": {
+        "ok": true
+      },
+      "scipy_stats": {
+        "ok": true
+      },
+      "statsmodels": {
+        "ok": true
+      },
+      "sklearn_dbscan": {
+        "ok": true
+      },
+      "plotly": {
+        "ok": true
+      }
+    },
+    "pandas_corr": {
+      "ok": true,
+      "value": 1
+    },
+    "scipy_pearsonr": {
+      "ok": true,
+      "value": 0.7745966692414834
+    },
+    "scipy_spearmanr": {
+      "ok": true,
+      "value": -0.9999999999999999
+    },
+    "statsmodels_ols": {
+      "ok": true,
+      "value": 1
+    },
+    "sklearn_dbscan": {
+      "ok": true,
+      "value": "[0,0,1,1]"
+    },
+    "plotly_scattermap": {
+      "ok": true,
+      "value": 6975
+    },
+    "ctypes_escape": {
+      "ok": false,
+      "error": "  File \"<exec>\", line 9, in find_spec | ImportError: blocked import: ctypes"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "test": "02-geo-test",
+  "packages": {
+    "shapely": {
+      "status": "ok",
+      "version": "2.1.2"
+    },
+    "geopandas": {
+      "status": "ok",
+      "version": "1.1.3"
+    },
+    "h3": {
+      "status": "ok",
+      "version": "4.4.2"
+    },
+    "pyproj": {
+      "status": "ok",
+      "version": "3.7.2"
+    }
+  },
+  "load_times_s": {
+    "shapely": 1.193,
+    "geopandas": 12.774,
+    "h3": 0.831
+  },
+  "scattermap": {
+    "parses_as_json": true,
+    "trace_types": [
+      "scattermap"
+    ],
+    "layout_has_map": true,
+    "json_size_bytes": 7793
+  },
+  "fallbacks": {
+    "haversine_tokyo_osaka_km": 392.4,
+    "haversine_expected_km": 402,
+    "haversine_within_2pct": false,
+    "geohash_precision9": "xn76cydhz",
+    "geohash_known_prefix_ok": true,
+    "geohash_roundtrip_point_inside_cell": true
+  },
+  "errors": {},
+  "geopandas_exercise": {
+    "rows": 3,
+    "buffer_area_0": 0.0003136548490545988,
+    "deg_distance_tokyo_osaka": 4.2627702553621125
+  },
+  "h3_exercise": {
+    "cell": "892f5a363bbffff",
+    "roundtrip_lat": 35.67725311715577,
+    "roundtrip_lng": 139.64977221244357,
+    "disk_k1_size": 7
+  },
+  "memory": {
+    "rss_mb": 715,
+    "heap_used_mb": 68,
+    "external_mb": 316
+  }
+}

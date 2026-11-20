@@ -1,0 +1,32 @@
+{
+  "test": "03-corr-benchmark",
+  "shape": [
+    8760,
+    57
+  ],
+  "n_values": 499320,
+  "df_memory_mb": 3.9,
+  "gen_s": 0.094,
+  "pearson_matrix_s": 0.154,
+  "spearman_matrix_s": 0.198,
+  "detrended_diff_pearson_s": 0.094,
+  "mean_abs_r_raw": 0.134,
+  "mean_abs_r_detrended": 0.02,
+  "lagged_xcorr_s": 0.016,
+  "lagged_best_lag_h": 2,
+  "lagged_best_r": 0.975,
+  "planted_lag_h": 2,
+  "lag_found_correctly": true,
+  "planted_pair_r_at_lag0": 0.6793,
+  "planted_pair_r_at_lag2": 0.975,
+  "node_memory_before": {
+    "rss_mb": 420,
+    "heap_used_mb": 59,
+    "external_mb": 186
+  },
+  "node_memory_after": {
+    "rss_mb": 614,
+    "heap_used_mb": 53,
+    "external_mb": 253
+  }
+}

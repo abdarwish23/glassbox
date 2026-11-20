@@ -1,0 +1,73 @@
+{
+  "test": "04-hostile-test",
+  "canary_planted_in_node_env": true,
+  "attempts": {
+    "env_read": {
+      "outcome": "blocked",
+      "detail": "os.getenv(GLASSBOX_CANARY) -> None"
+    },
+    "env_listing": {
+      "outcome": "blocked",
+      "detail": "os.environ keys visible to Python: ['USER', 'LOGNAME', 'PATH', 'PWD', 'HOME', 'LANG', '_', 'PYTHONINSPECT', 'LD_LIBRARY_PATH']"
+    },
+    "file_read_etc_passwd": {
+      "outcome": "blocked",
+      "detail": "FileNotFoundError: [Errno 44] No such file or directory: '/etc/passwd'"
+    },
+    "file_read_design_doc": {
+      "outcome": "blocked",
+      "detail": "FileNotFoundError: [Errno 44] No such file or directory: '/home/hatch/workspace/glassbox/DESIGN.md'"
+    },
+    "file_read_proc_environ": {
+      "outcome": "SUCCEEDED",
+      "detail": "read /proc/self/environ"
+    },
+    "file_write_tmp": {
+      "outcome": "partial",
+      "detail": "python-side write+readback: pwned"
+    },
+    "network_socket": {
+      "outcome": "SUCCEEDED",
+      "detail": "TCP connect to 1.1.1.1:443 succeeded"
+    },
+    "network_http": {
+      "outcome": "blocked",
+      "detail": "RuntimeError: TLS not supported in this environment"
+    },
+    "network_dns": {
+      "outcome": "SUCCEEDED",
+      "detail": "DNS resolved: ('172.29.1.0', 443)"
+    },
+    "os_system": {
+      "outcome": "SUCCEEDED",
+      "detail": "os.system('echo hi') returned 0"
+    },
+    "subprocess": {
+      "outcome": "blocked",
+      "detail": "OSError: [Errno 138] emscripten does not support processes."
+    },
+    "js_globalthis_keys": {
+      "outcome": "info",
+      "detail": "globalThis keys: ['global', 'clearImmediate', 'setImmediate', 'clearInterval', 'clearTimeout', 'setInterval', 'setTimeout', 'queueMicrotask', 'structuredClone', 'atob', 'btoa', 'performance', 'fetch', 'crypto', 'navigator']"
+    },
+    "js_process_attr": {
+      "outcome": "SUCCEEDED",
+      "detail": "js.process obtained: [object process]"
+    },
+    "js_eval_typeof_process": {
+      "outcome": "SUCCEEDED",
+      "detail": "js.eval('typeof process') -> 'object'"
+    },
+    "js_function_canary": {
+      "outcome": "SUCCEEDED",
+      "detail": "Function('return process.env.GLASSBOX_CANARY')() -> 'CANARY_TEST_VALUE_9f3k2'"
+    },
+    "js_function_require": {
+      "outcome": "blocked",
+      "detail": "Function('return this')() has require? False"
+    }
+  },
+  "host_checks": {
+    "host_tmp_file_created_by_python_write": false
+  }
+}
